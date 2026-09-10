@@ -1,0 +1,23 @@
+# Other projects
+SvoyaGra-V2-Django/
+svoya_gra_OLD/
+# Secrets
+.env
+config.py
+.git-credentials
+.gitconfig
+# Shell history
+.*
+!.gitignore
+fail2ban-sshd.log
+# Python
+venv/
+__pycache__/
+*.py[cod]
+# Runtime, logs, dumps
+*.session
+*.session-journal
+*.log
+logs/
+errors/
+database_dump.sql
