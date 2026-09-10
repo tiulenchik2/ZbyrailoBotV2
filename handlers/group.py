@@ -29,8 +29,8 @@ async def on_bot_joined(event: ChatMemberUpdated, db: Database, bot: Bot):
 @router.message(F.new_chat_members)
 async def welcome_newcomer(message: Message,
                            db: Database):
-      newcomers = []
-      for new_user in message.new_chat_members:
+    newcomers = []
+    for new_user in message.new_chat_members:
         if new_user.is_bot: continue
         user_tuple = (
                   new_user.id,
@@ -40,15 +40,15 @@ async def welcome_newcomer(message: Message,
                   None
             )
         newcomers.append(user_tuple)
-        if newcomers:
-            try:
-                chat_title = message.chat.title or "Untitled Group"
-                 await db.create_rows(newcomers,
-                                       message.chat.id,
-                                       chat_title)
-                 logger.info(f"{len(newcomers)} newcomers were added.")
-            except Exception as e:
-                  logger.exception("Error occured while adding newcomers.")
+    if newcomers:
+        try:
+            chat_title = message.chat.title or "Untitled Group"
+            await db.create_rows(newcomers,
+                                message.chat.id,
+                                chat_title)
+            logger.info(f"{len(newcomers)} newcomers were added.")
+        except Exception as e:
+            logger.exception("Error occured while adding newcomers.")
 @router.message(F.left_chat_members)
 async def user_left_chat(message: Message,
                          db: Database):
@@ -56,6 +56,7 @@ async def user_left_chat(message: Message,
     bot_obj = await message.bot.get_me()
     if left.id == bot_obj.id:
         logging.warning(f"Bot was deleted from {message.chat.id}")
+        await db.pool.execute("DELETE FROM groups_table WHERE group_id = $1", message.chat.id)
         return
     try:
         await db.remove_user(left.id, message.chat.id)
