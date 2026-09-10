@@ -32,18 +32,19 @@ class Database:
                        PRIMARY KEY (user_id_db, group_id_db)
                        )''')
     
-    async def add_group(self, groupid: int, grouptitle: str):
+    async def add_group(self, groupid: int, grouptitle: str | None):
         '''
         Quick add group into database
         '''
+        safe_title = grouptitle or "Untitled Group"
         async with self.pool.acquire() as conn:
             await conn.execute('''INSERT INTO groups_table (group_id, group_name)
                                    VALUES ($1, $2)
                                    ON CONFLICT (group_id) DO 
                                    UPDATE SET group_name = EXCLUDED.group_name''',
-                                   groupid, grouptitle)
+                                   groupid, safe_title)
 
-    async def create_rows(self, users: list, groupid: int, grouptitle: str):
+    async def create_rows(self, users: list, groupid: int, grouptitle: str | None):
         '''
         Creates rows of all users
         (calls when added into group ftft)
@@ -51,13 +52,14 @@ class Database:
         p.s. make sure that these conditions are validated BEFORE this func.
         NOTE: allow_call is always True (alt desc - is user a bot)
         '''
+        safe_title = grouptitle or "Untitled Group"
         async with self.pool.acquire() as conn:
             async with conn.transaction():
                 await conn.execute('''INSERT INTO groups_table (group_id, group_name)
                                    VALUES ($1, $2)
                                    ON CONFLICT (group_id) DO 
                                    UPDATE SET group_name = EXCLUDED.group_name''',
-                                   groupid, grouptitle)
+                                   groupid, safe_title)
                 await conn.executemany('''INSERT INTO users_table
                                        (user_id, username, name, surname, birthdate) VALUES
                                        ($1, $2, $3, $4, $5)

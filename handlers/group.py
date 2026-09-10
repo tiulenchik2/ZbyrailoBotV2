@@ -21,7 +21,8 @@ async def background_sync(chatid: int, db: Database, bot: Bot):
 
 @router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=(KICKED | LEFT | RESTRICTED)>>(MEMBER | ADMINISTRATOR)))
 async def on_bot_joined(event: ChatMemberUpdated, db: Database, bot: Bot):
-    await db.add_group(event.chat.id, event.chat.title)
+    chat_title = event.chat.title or "Untitled Group"
+    await db.add_group(event.chat.id, chat_title)
     await event.answer(Text_UA.GREETING)
     asyncio.create_task(background_sync(event.chat.id, db, bot))
 
@@ -41,9 +42,10 @@ async def welcome_newcomer(message: Message,
         newcomers.append(user_tuple)
         if newcomers:
             try:
+                chat_title = message.chat.title or "Untitled Group"
                  await db.create_rows(newcomers,
                                        message.chat.id,
-                                       message.chat.title)
+                                       chat_title)
                  logger.info(f"{len(newcomers)} newcomers were added.")
             except Exception as e:
                   logger.exception("Error occured while adding newcomers.")
